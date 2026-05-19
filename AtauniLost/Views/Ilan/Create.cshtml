@@ -1,0 +1,94 @@
+﻿@model AtauniLost.Models.Ilanlar
+@{
+    ViewData["Title"] = "İlan Ver";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg" style="background-color: #1c2541; color: white; border-radius: 15px;">
+                <div class="card-header border-0 text-center pt-4">
+                    <h3 class="fw-bold" style="color: #5bc0be;">Yeni İlan Oluştur</h3>
+                    <p class="text-muted">Lütfen eşya bilgilerini eksiksiz doldurun.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-white">İlan Başlığı</label>
+                            <input asp-for="Baslik" class="form-control" placeholder="Örn: Siyah Sırt Çantası Bulundu" required style="background-color: #0b132b; color: white; border: 1px solid #3a506b;">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-white">Eşya Fotoğrafı</label>
+                            <input type="file" name="Fotograf" class="form-control" accept="image/*" style="background-color: #0b132b; color: white; border: 1px solid #3a506b;">
+                            <small class="text-info">Eşyanın net bir fotoğrafını yüklemek bulunma şansını artırır.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-white">Kategori</label>
+                            <select asp-for="Kategori" class="form-select" style="background-color: #0b132b; color: white; border: 1px solid #3a506b;">
+                                <option value="Cüzdan/Kart">Cüzdan / Öğrenci Kartı</option>
+                                <option value="Elektronik">Elektronik (Telefon, Kulaklık vb.)</option>
+                                <option value="Kitap/Defter">Kitap / Defter</option>
+                                <option value="Giyim">Giyim Eşyası</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-white">Konum (Nerede bulundu/kayboldu?)</label>
+                            <div class="input-group">
+                                <input asp-for="Konum" id="konumInput" class="form-control" placeholder="Konum yazın veya butona basın..." required style="background-color: #0b132b; color: white; border: 1px solid #3a506b;">
+                                <button type="button" class="btn btn-outline-info" onclick="getLocation()">
+                                    <i class="bi bi-geo-alt"></i> Konumumu Bul
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-white">Durum</label>
+                            <select asp-for="Durum" class="form-select" style="background-color: #0b132b; color: white; border: 1px solid #3a506b;">
+                                <option value="Kayıp">Kayıp Eşya Arıyorum</option>
+                                <option value="Bulundu">Eşya Buldum</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-white">Detaylı Açıklama</label>
+                            <textarea asp-for="Aciklama" class="form-control" rows="4" placeholder="Eşyanın ayırt edici özelliklerini yazın..." style="background-color: #0b132b; color: white; border: 1px solid #3a506b;"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-lg w-100 fw-bold" style="background-color: #5bc0be; color: #0b132b;">İlanı Yayınla</button>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-link w-100 mt-2 text-muted text-decoration-none">Vazgeç</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getLocation() {
+        const btn = document.querySelector('button[onclick="getLocation()"]');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Aranıyor...';
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lng = position.coords.longitude.toFixed(6);
+                    document.getElementById("konumInput").value = "Konum: " + lat + ", " + lng;
+                    btn.innerHTML = '<i class="bi bi-check-lg"></i> Bulundu';
+                    btn.classList.replace('btn-outline-info', 'btn-success');
+                },
+                (error) => {
+                    alert("Konum izni reddedildi veya alınamadı.");
+                    btn.innerHTML = '<i class="bi bi-geo-alt"></i> Konumumu Bul';
+                }
+            );
+        } else {
+            alert("Tarayıcınız konum özelliğini desteklemiyor.");
+        }
+    }
+</script>

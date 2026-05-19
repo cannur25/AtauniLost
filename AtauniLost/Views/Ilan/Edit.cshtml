@@ -1,0 +1,150 @@
+﻿@model AtauniLost.Models.Ilanlar
+@{
+    ViewData["Title"] = "İlanı Düzenle";
+}
+
+<style>
+    body { background-color: #0b132b; }
+    .edit-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 30px;
+        color: #2b2d42;
+    }
+    #map {
+        height: 300px;
+        width: 100%;
+        border-radius: 15px;
+        border: 2px solid #5bc0be;
+        margin-bottom: 15px;
+    }
+    .current-img {
+        max-height: 150px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        display: block;
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="edit-card shadow-lg">
+                <h2 class="fw-bold text-primary mb-4"><i class="bi bi-pencil-square"></i> İlanı Güncelle</h2>
+                <hr>
+
+                <form asp-action="Edit" asp-controller="Ilan" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="IlanId" />
+                    
+                    <div class="row">
+                        <!-- Başlık -->
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">İlan Başlığı</label>
+                            <input asp-for="Baslik" class="form-control" placeholder="Örn: Siyah Deri Cüzdan" required />
+                        </div>
+
+                        <!-- Kategori ve Durum -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Kategori</label>
+                            <select asp-for="Kategori" class="form-select">
+                                <option value="Cüzdan">Cüzdan</option>
+                                <option value="Telefon">Telefon</option>
+                                <option value="Anahtar">Anahtar</option>
+                                <option value="Kart/Kimlik">Kart / Kimlik</option>
+                                <option value="Çanta">Çanta</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Durum</label>
+                            <select asp-for="Durum" class="form-select">
+                                <option value="Kayıp">Kayıp</option>
+                                <option value="Bulundu">Bulundu</option>
+                            </select>
+                        </div>
+
+                        <!-- Açıklama -->
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">Detaylı Açıklama</label>
+                            <textarea asp-for="Aciklama" class="form-control" rows="4" placeholder="Eşyayı nerede gördünüz veya özellikleri neler?"></textarea>
+                        </div>
+
+                        <!-- Fotoğraf -->
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">Fotoğrafı Değiştir (İsteğe Bağlı)</label>
+                            @if (!string.IsNullOrEmpty(Model.FotografYolu))
+                            {
+                                <p class="small text-muted">Mevcut Fotoğraf:</p>
+                                <img src="@Model.FotografYolu" class="current-img shadow-sm">
+                            }
+                            <input type="file" name="Fotograf" class="form-control" />
+                        </div>
+
+                        <!-- Harita ve Konum -->
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold text-danger"><i class="bi bi-geo-alt-fill"></i> Konumu Güncelle (Haritaya Tıklayın)</label>
+                            <div id="map" class="shadow-sm"></div>
+                            <input type="hidden" asp-for="Konum" id="konumInput" />
+                            <p class="small text-muted">Seçili Koordinat: <span id="coordsDisplay">@Model.Konum</span></p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Değişiklikleri Kaydet
+                        </button>
+                        <a href="/Ilan/Details/@Model.IlanId" class="btn btn-outline-secondary btn-lg w-50">Vazgeç</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Mevcut konumu al
+        var currentKonum = "@Model.Konum";
+        var temizKonum = currentKonum.replace("Konum: ", "").trim();
+        var coords = temizKonum.split(",");
+        
+        var lat = 39.906; // Varsayılan Erzurum
+        var lng = 41.255;
+
+        if (coords.length === 2) {
+            lat = parseFloat(coords[0]);
+            lng = parseFloat(coords[1]);
+        }
+
+        // Haritayı başlat
+        var map = L.map('map').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Mevcut işareti koy
+        var marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+        // Haritaya tıklanınca konumu güncelle
+        map.on('click', function(e) {
+            var newLat = e.latlng.lat;
+            var newLng = e.latlng.lng;
+            marker.setLatLng([newLat, newLng]);
+            updateInputs(newLat, newLng);
+        });
+
+        // İşaretçi sürüklenince konumu güncelle
+        marker.on('dragend', function(e) {
+            var pos = marker.getLatLng();
+            updateInputs(pos.lat, pos.lng);
+        });
+
+        function updateInputs(lat, lng) {
+            var val = lat.toFixed(6) + ", " + lng.toFixed(6);
+            document.getElementById('konumInput').value = "Konum: " + val;
+            document.getElementById('coordsDisplay').innerText = "Konum: " + val;
+        }
+    });
+</script>

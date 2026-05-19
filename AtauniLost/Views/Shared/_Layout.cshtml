@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AtauniLost</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --dark-bg: #0b132b;
+            --card-bg: #1c2541;
+            --accent-color: #5bc0be;
+            --text-light: #edf2f4;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+        }
+
+        .navbar {
+            background-color: var(--dark-bg) !important;
+            border-bottom: 1px solid #3a506b;
+            padding: 15px 0;
+        }
+
+        .navbar-brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            font-weight: 500;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color) !important;
+        }
+
+        .profile-link {
+            text-decoration: none;
+            color: var(--accent-color) !important;
+            transition: 0.3s;
+        }
+
+        .profile-link:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        footer {
+            background-color: var(--dark-bg);
+            border-top: 1px solid #3a506b;
+            color: var(--text-light);
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm shadow-sm mb-3">
+            <div class="container">
+                <a class="navbar-brand text-white" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/atauni-logo.png" alt="Logo" />
+                    <span class="fw-bold">AtauniLost</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door"></i> İlanlar
+                            </a>
+                        </li>
+                        
+                        @* Admin Paneli Linki - Sadece Admin E-postası için görünür *@
+                        @if (Context.Session.GetString("Email") == "admin@atauni.edu.tr")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold" asp-controller="Admin" asp-action="OnayBekleyenler">
+                                    <i class="bi bi-shield-lock-fill"></i> Yönetici Paneli
+                                </a>
+                            </li>
+                        }
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Hakkımızda</a>
+                        </li>
+                    </ul>
+
+                    <ul class="navbar-nav align-items-center">
+                        @if (Context.Session.GetString("AdSoyad") != null)
+                        {
+                            <li class="nav-item me-3">
+                                @* Akıllı Yönlendirme: Admin ise Onay Paneline, Kullanıcı ise Profiline *@
+                                @{
+                                    var isAdmin = Context.Session.GetString("Email") == "admin@atauni.edu.tr";
+                                    var controller = isAdmin ? "Admin" : "Account";
+                                    var action = isAdmin ? "OnayBekleyenler" : "Profil";
+                                }
+                                <a asp-controller="@controller" asp-action="@action" class="profile-link fw-bold d-flex align-items-center">
+                                    <i class="bi bi-person-circle fs-5 me-2"></i> 
+                                    @Context.Session.GetString("AdSoyad")
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-outline-danger btn-sm px-3" asp-controller="Account" asp-action="Logout" style="border-radius: 8px;">
+                                    <i class="bi bi-box-arrow-right"></i> Çıkış
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-accent px-4" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="text-center">
+        <div class="container">
+            &copy; @DateTime.Now.Year - <b>AtauniLost</b> | Atatürk Üniversitesi Kayıp Eşya Portalı
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

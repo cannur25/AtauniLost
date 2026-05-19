@@ -1,0 +1,114 @@
+﻿@{
+    ViewData["Title"] = "Giriş - AtauniLost";
+    Layout = null; 
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background-image: url('/images/arka-plan.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-box {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .logo {
+            max-width: 140px;
+            margin-bottom: 25px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            margin-bottom: 15px;
+            height: 45px;
+            border: 1px solid #ddd;
+        }
+
+        .btn-giriş {
+            background-color: #1a5c8a; /* Atauni kurumsal mavisine yakın bir ton */
+            color: white;
+            border: none;
+            width: 100%;
+            height: 45px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-giriş:hover {
+            background-color: #134466;
+            cursor: pointer;
+        }
+
+        .alt-linkler {
+            margin-top: 25px;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .alt-linkler a {
+            color: #1a5c8a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .alt-linkler a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <img src="~/images/atauni-logo.png" alt="Atauni Logo" class="logo" />
+        
+        <h5 class="mb-4" style="color: #444;">AtauniLost Giriş</h5>
+
+        <form asp-action="Login" method="post">
+            <div class="form-group">
+                <input type="email" name="email" class="form-control" placeholder="E-posta Adresiniz" required />
+            </div>
+            
+            <div class="form-group">
+                <input type="password" name="sifre" class="form-control" placeholder="Şifreniz" required />
+            </div>
+
+            @if (ViewBag.Hata != null)
+            {
+                <div class="alert alert-danger py-2" style="font-size: 13px; border-radius: 8px;">
+                    @ViewBag.Hata
+                </div>
+            }
+
+            <button type="submit" class="btn-giriş">Sisteme Giriş Yap</button>
+        </form>
+        
+        <div class="alt-linkler">
+            <a href="/Account/Register">Yeni Kayıt Oluştur</a>
+            <span class="mx-2">|</span>
+            <a href="#">Şifremi Unuttum</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Kayıt Ol - AtauniLost";
+    Layout = null; 
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { background-image: url('/images/arka-plan.jpg'); background-size: cover; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .box { background: rgba(255,255,255,0.9); padding: 30px; border-radius: 10px; width: 350px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <img src="~/images/atauni-logo.png" style="width:120px; margin-bottom:20px;" />
+        <h4>Yeni Kayıt</h4>
+        <form asp-action="Register" method="post">
+            <input type="text" name="AdSoyad" class="form-control mb-2" placeholder="Ad Soyad" required />
+            <input type="email" name="Email" class="form-control mb-2" placeholder="E-posta (@@ogr.atauni.edu.tr)" required />
+            <input type="password" name="Sifre" class="form-control mb-3" placeholder="Şifre" required />
+            <button type="submit" class="btn btn-primary w-100">Kayıt Ol</button>
+        </form>
+        <a href="/Account/Login" class="d-block mt-3 text-secondary">Giriş Yap</a>
+    </div>
+</body>
+</html>

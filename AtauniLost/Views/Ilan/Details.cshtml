@@ -1,0 +1,223 @@
+﻿@model AtauniLost.Models.Ilanlar
+@using Microsoft.EntityFrameworkCore
+@{
+    ViewData["Title"] = Model.Baslik + " - Detaylar";
+    
+    // Veritabanı bağlantısı
+    using var db = new AtauniLost.Models.AtauniLostDbContext();
+    
+    // Yorumları kullanıcı bilgileriyle birlikte çekiyoruz
+    var yorumlar = db.Yorumlars
+                     .Include(y => y.Kullanici) 
+                     .Where(y => y.IlanId == Model.IlanId)
+                     .OrderByDescending(y => y.Tarih)
+                     .ToList();
+
+    // Giriş yapan kullanıcının ID'sini Session'dan alıyoruz
+    var girisYapanId = Context.Session.GetString("KullaniciId");
+}
+
+<style>
+    body { background-color: #0b132b; }
+
+    .details-card {
+        background: #f8f9fa;
+        border-radius: 20px;
+        color: #2b2d42;
+        overflow: hidden;
+    }
+
+    #map {
+        height: 350px;
+        width: 100%;
+        border-radius: 15px;
+        border: 2px solid #5bc0be;
+    }
+
+    .comment-section {
+        background: #edf2f4;
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .comment-bubble {
+        background: white;
+        border-radius: 15px;
+        padding: 12px 18px;
+        margin-bottom: 15px;
+        border-left: 5px solid #5bc0be;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .comment-meta {
+        font-size: 0.88rem;
+        font-weight: bold;
+        color: #1a5c8a;
+    }
+
+    .comment-date {
+        font-size: 0.75rem;
+        color: #8d99ae;
+    }
+
+    .info-box {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+    }
+
+    /* Yönetim Paneli Stili */
+    .admin-box {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="details-card shadow-lg p-0">
+        <div class="row g-0">
+            <!-- SOL TARAF: FOTOĞRAF VE HABERLEŞME -->
+            <div class="col-lg-7 p-4">
+                @if (!string.IsNullOrEmpty(Model.FotografYolu))
+                {
+                    <img src="@Model.FotografYolu" class="img-fluid rounded shadow-sm mb-4" style="width:100%; max-height:480px; object-fit:cover;">
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-center bg-secondary rounded mb-4" style="height:350px;">
+                        <i class="bi bi-image text-white" style="font-size: 5rem;"></i>
+                    </div>
+                }
+
+                <div class="comment-section shadow-sm">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-chat-left-text-fill text-primary"></i> Yorumlar ve Haberleşme</h5>
+                    
+                    <div id="commentList" style="max-height: 450px; overflow-y: auto;">
+                        @if (yorumlar.Any())
+                        {
+                            foreach (var yorum in yorumlar)
+                            {
+                                <div class="comment-bubble">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="comment-meta">
+                                            <i class="bi bi-person-circle"></i> 
+                                            @(yorum.Kullanici?.AdSoyad ?? "Bilinmeyen Kullanıcı")
+                                        </span>
+                                        <span class="comment-date">
+                                            <i class="bi bi-clock"></i> @yorum.Tarih?.ToString("dd.MM.yyyy HH:mm")
+                                        </span>
+                                    </div>
+                                    <p class="mb-0 text-dark">@yorum.Icerik</p>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="bi bi-chat-dots display-4 text-muted"></i>
+                                <p class="text-muted mt-2 italic">Henüz yorum yapılmamış. Bilgi almak için ilk yorumu sen yaz!</p>
+                            </div>
+                        }
+                    </div>
+
+                    <form asp-action="YorumEkle" asp-controller="Ilan" method="post" class="mt-4">
+                        <input type="hidden" name="ilanId" value="@Model.IlanId" />
+                        <div class="input-group">
+                            <textarea name="icerik" class="form-control" placeholder="Eşya hakkında bir mesaj yazın..." rows="2" required style="border-radius: 12px 0 0 12px;"></textarea>
+                            <button class="btn btn-primary px-4" type="submit" style="border-radius: 0 12px 12px 0;">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SAĞ TARAF: İLAN BİLGİLERİ VE YÖNETİM -->
+            <div class="col-lg-5 p-4 border-start bg-white">
+                
+                @* --- İLAN YÖNETİM PANELİ (Sadece İlan Sahibi Görür) --- *@
+                @if (girisYapanId != null && Model.KullaniciId == int.Parse(girisYapanId))
+                {
+                    <div class="admin-box shadow-sm animate__animated animate__fadeIn">
+                        <h6 class="fw-bold text-warning-emphasis mb-3"><i class="bi bi-gear-fill"></i> İlan Yönetimi</h6>
+                        <div class="d-flex gap-2">
+                            <a href="/Ilan/Edit/@Model.IlanId" class="btn btn-warning text-white w-100">
+                                <i class="bi bi-pencil-square"></i> Düzenle
+                            </a>
+                            <form asp-action="Sil" asp-controller="Ilan" method="post" class="w-100" onsubmit="return confirm('Bu ilanı kalıcı olarak silmek istediğinize emin misiniz?');">
+                                <input type="hidden" name="id" value="@Model.IlanId" />
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="bi bi-trash"></i> Sil
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <h2 class="fw-bold text-dark mb-0">@Model.Baslik</h2>
+                    <span class="badge @(Model.Durum == "Kayıp" ? "bg-danger" : "bg-success") p-2 shadow-sm">@Model.Durum</span>
+                </div>
+                
+                <div class="info-box shadow-sm">
+                    <p class="mb-1 text-muted small">Kategori</p>
+                    <h6 class="fw-bold mb-0 text-primary">@Model.Kategori</h6>
+                </div>
+
+                <div class="info-box shadow-sm">
+                    <p class="mb-1 text-muted small">İlan Tarihi</p>
+                    <h6 class="fw-bold mb-0">@(Model.Tarih?.ToString("dd MMMM yyyy HH:mm") ?? "Tarih Belirtilmedi")</h6>
+                </div>
+
+                <div class="info-box shadow-sm bg-light border-0">
+                    <p class="mb-1 text-muted small">Açıklama</p>
+                    <p class="mb-0 text-dark" style="white-space: pre-line;">@Model.Aciklama</p>
+                </div>
+
+                <div class="mt-4">
+                    <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-geo-alt-fill text-danger"></i> Harita Üzerindeki Konum</h6>
+                    <div id="map" class="shadow-sm"></div>
+                    <p class="text-muted small mt-2">Koordinatlar: @Model.Konum</p>
+                </div>
+
+                <div class="mt-4">
+                    <a href="mailto:iletisim@atauni.edu.tr" class="btn btn-primary btn-lg w-100 mb-2 shadow-sm">
+                        <i class="bi bi-envelope-check"></i> İlan Sahibiyle Görüş
+                    </a>
+                    <a href="/Home/Index" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left-short"></i> Listeye Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var rawKonum = "@Model.Konum";
+        var temizKonum = rawKonum.replace("Konum: ", "").trim();
+        var coords = temizKonum.split(",");
+        
+        if (coords.length === 2) {
+            var lat = parseFloat(coords[0]);
+            var lng = parseFloat(coords[1]);
+
+            var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 16);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup('<b>@Model.Baslik</b>')
+                .openPopup();
+        }
+    });
+</script>

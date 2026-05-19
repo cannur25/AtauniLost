@@ -1,0 +1,69 @@
+﻿@model List<AtauniLost.Models.Ilanlar>
+@{
+    ViewData["Title"] = "Admin Yönetim Paneli";
+}
+
+<style>
+    .admin-container { background: #1c2541; border-radius: 15px; padding: 25px; margin-top: 30px; border: 1px solid #3a506b; }
+    .table { color: #edf2f4 !important; vertical-align: middle; }
+    .img-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+    .status-badge { font-size: 0.8rem; padding: 5px 10px; border-radius: 20px; }
+</style>
+
+<div class="container-fluid px-5">
+    <div class="admin-container shadow-lg">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-white fw-bold"><i class="bi bi-gear-fill text-accent"></i> İlan Yönetim Merkezi</h2>
+            <div>
+                <a href="/Admin/Index" class="btn btn-outline-light btn-sm me-2">Tüm İlanlar</a>
+                <a href="/Admin/OnayBekleyenler" class="btn btn-warning btn-sm">Onay Bekleyenler</a>
+            </div>
+        </div>
+
+        <table class="table table-hover border-secondary">
+            <thead>
+                <tr>
+                    <th>Görsel</th>
+                    <th>Başlık</th>
+                    <th>Kategori</th>
+                    <th>Tarih</th>
+                    <th>Durum</th>
+                    <th class="text-center">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ilan in Model)
+                {
+                    <tr>
+                        <td><img src="@ilan.FotografYolu" class="img-thumb"></td>
+                        <td class="fw-bold">@ilan.Baslik</td>
+                        <td>@ilan.Kategori</td>
+                        <td>@ilan.Tarih?.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @if (ilan.OnayDurumu == true) {
+                                <span class="status-badge bg-success">Yayında</span>
+                            } else {
+                                <span class="status-badge bg-warning text-dark">Onay Bekliyor</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                @if (ilan.OnayDurumu == false) {
+                                    <form asp-action="Onayla" method="post">
+                                        <input type="hidden" name="id" value="@ilan.IlanId" />
+                                        <button class="btn btn-sm btn-success"><i class="bi bi-check-lg"></i></button>
+                                    </form>
+                                }
+                                <a href="/Admin/Edit/@ilan.IlanId" class="btn btn-sm btn-info text-white"><i class="bi bi-pencil"></i></a>
+                                <form asp-action="Sil" method="post" onsubmit="return confirm('Bu ilanı silmek istediğinize emin misiniz?')">
+                                    <input type="hidden" name="id" value="@ilan.IlanId" />
+                                    <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
